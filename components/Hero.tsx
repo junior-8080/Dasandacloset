@@ -1,12 +1,41 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+
+const heroImages = [
+  { src: "/landingPage/hero01.jpeg", alt: "Dasanda Closet — Modest Fashion" },
+  { src: "/landingPage/hero02.jpeg", alt: "Dasanda Closet — Modest Fashion" },
+  { src: "/landingPage/hero03.jpeg", alt: "Dasanda Closet — Modest Fashion" },
+  { src: "/landingPage/hero04.jpeg", alt: "Dasanda Closet — Modest Fashion" },
+];
+
+const SLIDE_DURATION = 3000;
 
 export default function Hero() {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, -100]);
+
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(1);
+
+  const goTo = useCallback(
+    (index: number) => {
+      setDirection(index > current ? 1 : -1);
+      setCurrent(index);
+    },
+    [current]
+  );
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDirection(1);
+      setCurrent((prev) => (prev + 1) % heroImages.length);
+    }, SLIDE_DURATION);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <section
@@ -98,7 +127,7 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Right — Image */}
+          {/* Right — Image Swiper */}
           <motion.div
             style={{ y }}
             className="order-1 lg:order-2 relative"
@@ -107,14 +136,52 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="relative rounded-3xl overflow-hidden aspect-[4/5] shadow-[0_32px_80px_rgba(0,0,0,0.18)]">
-              <Image
-                src="https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=900&q=90"
-                alt="Dasanda Closet — Modest Fashion"
-                fill
-                className="object-cover"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal/30 via-transparent to-transparent" />
+              <AnimatePresence initial={false} custom={direction}>
+                <motion.div
+                  key={current}
+                  custom={direction}
+                  variants={{
+                    enter: (d: number) => ({ x: d * 60, opacity: 0, scale: 1.04 }),
+                    center: { x: 0, opacity: 1, scale: 1 },
+                    exit: (d: number) => ({ x: d * -60, opacity: 0, scale: 0.97 }),
+                  }}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.15}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.x < -50) goTo((current + 1) % heroImages.length);
+                    else if (info.offset.x > 50) goTo((current - 1 + heroImages.length) % heroImages.length);
+                  }}
+                  className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                >
+                  <Image
+                    src={heroImages[current].src}
+                    alt={heroImages[current].alt}
+                    fill
+                    className="object-cover"
+                    priority={current === 0}
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal/30 via-transparent to-transparent pointer-events-none" />
+
+              {/* Dot indicators */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {heroImages.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goTo(i)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === current ? "w-6 bg-white" : "w-1.5 bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Floating badge */}

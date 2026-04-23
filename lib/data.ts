@@ -14,16 +14,16 @@ export const OFFERINGS = [
     description:
       "Elegantly crafted abayas, kaftans, and modest dresses that celebrate femininity without compromise.",
     image:
-      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&q=80",
+      "/landingPage/bestSeller.jpeg",
     tag: "Best Seller",
   },
   {
-    icon: "👜",
-    title: "Bags & Jewelry",
+    icon: "👘",
+    title: "One-of-a-Kind Craftsmanship",
     description:
-      "Curated accessories that complete every outfit — from statement handbags to delicate gold jewellery.",
+      "Technically, bespoke means a garment was made from scratch to a customer's specific measurements and requirements.",
     image:
-      "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80",
+      "/landingPage/newArrivals.jpeg",
     tag: "New Arrivals",
   },
   {
@@ -32,7 +32,7 @@ export const OFFERINGS = [
     description:
       "Bespoke tailoring that ensures every piece fits your silhouette perfectly. Your measurements, our craft.",
     image:
-      "https://images.unsplash.com/photo-1558171813-4882e2b93f04?w=600&q=80",
+      "/landingPage/madeToFit.jpeg",
     tag: "Premium",
   },
 ];

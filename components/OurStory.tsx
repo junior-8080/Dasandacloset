@@ -23,7 +23,7 @@ export default function OurStory() {
             <motion.div variants={fadeUp} className="relative h-[520px]">
               <div className="absolute top-0 left-0 w-64 h-80 rounded-3xl overflow-hidden shadow-card-hover">
                 <Image
-                  src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&q=80"
+                  src="/landingPage/ourStory.jpeg"
                   alt="Dasanda style"
                   fill
                   className="object-cover"
@@ -31,7 +31,7 @@ export default function OurStory() {
               </div>
               <div className="absolute bottom-0 right-0 w-64 h-72 rounded-3xl overflow-hidden shadow-card-hover">
                 <Image
-                  src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&q=80"
+                  src="/landingPage/ourStoryDress.jpeg"
                   alt="Dasanda style 2"
                   fill
                   className="object-cover"
