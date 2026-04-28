@@ -4,12 +4,29 @@ import { useState, FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, CheckCircle, ShoppingBag, Trash2, Minus, Plus } from "lucide-react";
+import {
+  ArrowLeft, ArrowRight, CheckCircle, ShoppingBag,
+  Trash2, Minus, Plus, Smartphone, Landmark, Clock,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart-context";
 
 const DELIVERY = 50;
+
+// ── Payment details — update these with real info ─────────────────────────────
+const MOMO = {
+  network: "MTN Mobile Money",
+  number: "055 XXX XXXX",
+  name: "Dasanda Closet",
+};
+const BANK = {
+  bank: "Absa Bank Ghana",
+  account: "XXXX XXXX XXXX",
+  name: "Dasanda Closet Ltd",
+  branch: "Accra Main Branch",
+};
+// ─────────────────────────────────────────────────────────────────────────────
 
 type FormData = {
   name: string;
@@ -18,9 +35,8 @@ type FormData = {
   notes: string;
 };
 
-const STEPS = ["Cart", "Delivery", "Confirm"];
+const STEPS = ["Cart", "Delivery", "Payment"];
 
-// Slide direction: +1 = forward (left→right), -1 = back
 function slideVariants(dir: number) {
   return {
     enter: { x: dir > 0 ? 48 : -48, opacity: 0 },
@@ -35,6 +51,8 @@ export default function CheckoutPage() {
   const [dir, setDir] = useState(1);
   const [form, setForm] = useState<FormData>({ name: "", phone: "", location: "", notes: "" });
   const [loading, setLoading] = useState(false);
+  const [savedTotal, setSavedTotal] = useState(0);
+  const [paid, setPaid] = useState(false);
 
   const total = subtotal + (items.length > 0 ? DELIVERY : 0);
 
@@ -52,13 +70,13 @@ export default function CheckoutPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
+      setSavedTotal(total); // lock in total before cart clears
       clear();
       goTo(2);
     }, 1200);
   }
 
-  // ── Step content ─────────────────────────────────────────────────────────
-
+  // ── Step 0: Cart ─────────────────────────────────────────────────────────
   const stepCart = (
     <div className="flex flex-col gap-6">
       <h2 className="font-serif text-xl font-bold text-brand-charcoal">Your Cart</h2>
@@ -75,56 +93,28 @@ export default function CheckoutPage() {
         <>
           <div className="space-y-4">
             {items.map((item) => (
-              <div
-                key={`${item.product.id}-${item.size}`}
-                className="flex gap-4 bg-white rounded-2xl p-4 shadow-sm"
-              >
-                {/* Image */}
+              <div key={`${item.product.id}-${item.size}`} className="flex gap-4 bg-white rounded-2xl p-4 shadow-sm">
                 <div className="relative w-20 h-24 rounded-xl overflow-hidden shrink-0 bg-brand-cream-dark">
-                  <Image
-                    src={item.product.image}
-                    alt={item.product.name}
-                    fill
-                    sizes="80px"
-                    className="object-cover"
-                  />
+                  <Image src={item.product.image} alt={item.product.name} fill sizes="80px" className="object-cover" />
                 </div>
-
-                {/* Details */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
-                    <p className="font-serif text-sm font-semibold text-brand-charcoal leading-snug">
-                      {item.product.name}
-                    </p>
+                    <p className="font-serif text-sm font-semibold text-brand-charcoal leading-snug">{item.product.name}</p>
                     <p className="text-xs text-brand-charcoal-light mt-0.5">Size: {item.size}</p>
                   </div>
-
                   <div className="flex items-center justify-between mt-3">
-                    {/* Qty */}
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setQty(item.product.id, item.size, item.quantity - 1)}
-                        className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors"
-                      >
+                      <button onClick={() => setQty(item.product.id, item.size, item.quantity - 1)} className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors">
                         <Minus size={11} />
                       </button>
                       <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                      <button
-                        onClick={() => setQty(item.product.id, item.size, item.quantity + 1)}
-                        className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors"
-                      >
+                      <button onClick={() => setQty(item.product.id, item.size, item.quantity + 1)} className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors">
                         <Plus size={11} />
                       </button>
                     </div>
-
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-brand-red">
-                        GHS {(item.product.price * item.quantity).toLocaleString()}
-                      </span>
-                      <button
-                        onClick={() => remove(item.product.id, item.size)}
-                        className="text-brand-charcoal-light hover:text-brand-red transition-colors"
-                      >
+                      <span className="text-sm font-semibold text-brand-red">GHS {(item.product.price * item.quantity).toLocaleString()}</span>
+                      <button onClick={() => remove(item.product.id, item.size)} className="text-brand-charcoal-light hover:text-brand-red transition-colors">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -134,23 +124,15 @@ export default function CheckoutPage() {
             ))}
           </div>
 
-          {/* Totals */}
           <div className="bg-white rounded-2xl p-5 shadow-sm space-y-2">
-            <div className="flex justify-between text-sm text-brand-charcoal-light">
-              <span>Subtotal</span><span>GHS {subtotal.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-sm text-brand-charcoal-light">
-              <span>Delivery</span><span>GHS {DELIVERY}</span>
-            </div>
+            <div className="flex justify-between text-sm text-brand-charcoal-light"><span>Subtotal</span><span>GHS {subtotal.toLocaleString()}</span></div>
+            <div className="flex justify-between text-sm text-brand-charcoal-light"><span>Delivery</span><span>GHS {DELIVERY}</span></div>
             <div className="flex justify-between font-serif text-lg font-bold text-brand-charcoal border-t border-brand-cream-dark pt-2 mt-1">
               <span>Total</span><span>GHS {total.toLocaleString()}</span>
             </div>
           </div>
 
-          <button
-            onClick={() => goTo(1)}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-brand-gradient text-white font-semibold shadow-brand-glow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-          >
+          <button onClick={() => goTo(1)} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-brand-gradient text-white font-semibold shadow-brand-glow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
             Continue to Delivery <ArrowRight size={16} />
           </button>
         </>
@@ -158,11 +140,11 @@ export default function CheckoutPage() {
     </div>
   );
 
+  // ── Step 1: Delivery ──────────────────────────────────────────────────────
   const stepDelivery = (
     <form onSubmit={handlePlaceOrder} className="flex flex-col gap-6">
       <h2 className="font-serif text-xl font-bold text-brand-charcoal">Delivery Details</h2>
 
-      {/* Cart mini-summary */}
       <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2">
         {items.map((item) => (
           <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3">
@@ -173,9 +155,7 @@ export default function CheckoutPage() {
               <p className="text-xs font-medium text-brand-charcoal line-clamp-1">{item.product.name}</p>
               <p className="text-xs text-brand-charcoal-light">Size: {item.size} · Qty: {item.quantity}</p>
             </div>
-            <span className="text-xs font-semibold text-brand-red shrink-0">
-              GHS {(item.product.price * item.quantity).toLocaleString()}
-            </span>
+            <span className="text-xs font-semibold text-brand-red shrink-0">GHS {(item.product.price * item.quantity).toLocaleString()}</span>
           </div>
         ))}
         <div className="flex justify-between font-serif font-bold text-brand-charcoal border-t border-brand-cream-dark pt-2 text-sm">
@@ -187,93 +167,143 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-brand-charcoal uppercase tracking-widest">Full Name *</label>
-            <input
-              required name="name" value={form.name} onChange={handleChange}
-              placeholder="Amina Mensah"
-              className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors"
-            />
+            <input required name="name" value={form.name} onChange={handleChange} placeholder="Amina Mensah"
+              className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors" />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-brand-charcoal uppercase tracking-widest">Phone Number *</label>
-            <input
-              required name="phone" value={form.phone} onChange={handleChange}
-              placeholder="0XX XXX XXXX"
-              className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors"
-            />
+            <input required name="phone" value={form.phone} onChange={handleChange} placeholder="0XX XXX XXXX"
+              className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors" />
           </div>
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-brand-charcoal uppercase tracking-widest">Delivery Location *</label>
-          <input
-            required name="location" value={form.location} onChange={handleChange}
-            placeholder="e.g. East Legon, Accra"
-            className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors"
-          />
+          <input required name="location" value={form.location} onChange={handleChange} placeholder="e.g. East Legon, Accra"
+            className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors" />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-brand-charcoal uppercase tracking-widest">Order Notes</label>
-          <textarea
-            name="notes" value={form.notes} onChange={handleChange} rows={3}
-            placeholder="Special instructions, measurements, or requests…"
-            className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors resize-none"
-          />
+          <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} placeholder="Special instructions, measurements, or requests…"
+            className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors resize-none" />
         </div>
       </div>
 
       <div className="flex gap-3">
-        <button
-          type="button" onClick={() => goTo(0)}
-          className="flex items-center gap-1.5 px-5 py-3.5 rounded-full border border-brand-cream-dark text-sm font-medium text-brand-charcoal hover:bg-brand-cream transition-colors"
-        >
+        <button type="button" onClick={() => goTo(0)} className="flex items-center gap-1.5 px-5 py-3.5 rounded-full border border-brand-cream-dark text-sm font-medium text-brand-charcoal hover:bg-brand-cream transition-colors">
           <ArrowLeft size={14} /> Back
         </button>
-        <button
-          type="submit" disabled={loading}
-          className="flex-1 py-3.5 rounded-full bg-brand-gradient text-white font-semibold shadow-brand-glow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loading ? "Placing Order…" : "Place Order"}
+        <button type="submit" disabled={loading} className="flex-1 py-3.5 rounded-full bg-brand-gradient text-white font-semibold shadow-brand-glow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed">
+          {loading ? "Placing Order…" : "Proceed to Payment"}
         </button>
       </div>
     </form>
   );
 
-  const stepConfirm = (
+  // ── Step 2: Payment ───────────────────────────────────────────────────────
+  const stepPayment = paid ? (
+    /* ── After "I Have Paid" ── */
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 22 }}
       className="flex flex-col items-center text-center gap-6 py-10"
     >
-      <CheckCircle size={72} className="text-green-500" strokeWidth={1.3} />
+      <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center">
+        <Clock size={40} className="text-amber-500" strokeWidth={1.4} />
+      </div>
       <div>
-        <h2 className="font-serif text-3xl font-bold text-brand-charcoal mb-2">Order Received!</h2>
+        <h2 className="font-serif text-2xl font-bold text-brand-charcoal mb-3">
+          Payment Submitted
+        </h2>
         <p className="text-brand-charcoal-light max-w-sm leading-relaxed">
-          Thank you, <strong>{form.name}</strong>. We&apos;ll reach out to{" "}
-          <strong>{form.phone}</strong> to confirm your delivery details.
+          Thank you, <strong>{form.name}</strong>! Once we confirm your payment,
+          we will contact you on <strong>{form.phone}</strong> to arrange delivery.
         </p>
       </div>
-      <Link
-        href="/shop"
-        className="inline-flex items-center gap-2 bg-brand-gradient text-white font-semibold px-8 py-3.5 rounded-full shadow-brand-glow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-      >
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 text-sm text-amber-800 max-w-sm w-full text-left">
+        <p className="font-semibold mb-1">What happens next?</p>
+        <ol className="list-decimal list-inside space-y-1 text-amber-700">
+          <li>We verify your payment (usually within 1 hour)</li>
+          <li>We confirm your order via phone or WhatsApp</li>
+          <li>Your order is packed and dispatched</li>
+        </ol>
+      </div>
+      <Link href="/shop" className="inline-flex items-center gap-2 bg-brand-gradient text-white font-semibold px-8 py-3.5 rounded-full shadow-brand-glow hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
         Continue Shopping
       </Link>
     </motion.div>
+  ) : (
+    /* ── Payment details ── */
+    <div className="flex flex-col gap-6">
+      <div className="text-center">
+        <h2 className="font-serif text-xl font-bold text-brand-charcoal mb-1">Pay for Your Order</h2>
+        <p className="text-sm text-brand-charcoal-light">
+          Send exactly{" "}
+          <span className="font-bold text-brand-red">GHS {savedTotal.toLocaleString()}</span>{" "}
+          via any method below, then tap <em>I Have Paid</em>.
+        </p>
+      </div>
+
+      {/* MoMo */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border-l-4 border-brand-gold space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-brand-gold/10 flex items-center justify-center">
+            <Smartphone size={16} className="text-brand-gold" />
+          </div>
+          <p className="font-semibold text-brand-charcoal text-sm">{MOMO.network}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-y-2 text-sm pl-1">
+          <span className="text-brand-charcoal-light">Number</span>
+          <span className="font-semibold text-brand-charcoal">{MOMO.number}</span>
+          <span className="text-brand-charcoal-light">Name</span>
+          <span className="font-semibold text-brand-charcoal">{MOMO.name}</span>
+          <span className="text-brand-charcoal-light">Amount</span>
+          <span className="font-bold text-brand-red">GHS {savedTotal.toLocaleString()}</span>
+        </div>
+      </div>
+
+      {/* Bank */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border-l-4 border-brand-charcoal space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-brand-charcoal/10 flex items-center justify-center">
+            <Landmark size={16} className="text-brand-charcoal" />
+          </div>
+          <p className="font-semibold text-brand-charcoal text-sm">{BANK.bank}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-y-2 text-sm pl-1">
+          <span className="text-brand-charcoal-light">Account No.</span>
+          <span className="font-semibold text-brand-charcoal">{BANK.account}</span>
+          <span className="text-brand-charcoal-light">Account Name</span>
+          <span className="font-semibold text-brand-charcoal">{BANK.name}</span>
+          <span className="text-brand-charcoal-light">Branch</span>
+          <span className="font-semibold text-brand-charcoal">{BANK.branch}</span>
+          <span className="text-brand-charcoal-light">Amount</span>
+          <span className="font-bold text-brand-red">GHS {savedTotal.toLocaleString()}</span>
+        </div>
+      </div>
+
+      <p className="text-xs text-center text-brand-charcoal-light px-4">
+        Use your name <strong>{form.name}</strong> as the payment reference so we can match your order.
+      </p>
+
+      <button
+        onClick={() => setPaid(true)}
+        className="w-full py-4 rounded-full bg-green-600 text-white font-semibold text-base hover:bg-green-700 hover:-translate-y-0.5 shadow-lg transition-all duration-200"
+      >
+        I Have Paid
+      </button>
+    </div>
   );
 
-  const panels = [stepCart, stepDelivery, stepConfirm];
+  const panels = [stepCart, stepDelivery, stepPayment];
 
   return (
     <>
       <Navbar />
 
       <div className="max-w-2xl mx-auto px-6 lg:px-8 pt-28 pb-16">
-        {/* Back to shop */}
         {step < 2 && (
-          <Link
-            href="/shop"
-            className="inline-flex items-center gap-1.5 text-sm text-brand-charcoal-light hover:text-brand-red transition-colors mb-8"
-          >
+          <Link href="/shop" className="inline-flex items-center gap-1.5 text-sm text-brand-charcoal-light hover:text-brand-red transition-colors mb-8">
             <ArrowLeft size={14} /> Back to Shop
           </Link>
         )}
@@ -283,41 +313,27 @@ export default function CheckoutPage() {
           {STEPS.map((label, i) => (
             <div key={label} className="flex items-center flex-1 last:flex-none">
               <div className="flex flex-col items-center gap-1">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 ${
-                    i < step
-                      ? "bg-green-500 text-white"
-                      : i === step
-                      ? "bg-brand-red text-white"
-                      : "bg-brand-cream-dark text-brand-charcoal-light"
-                  }`}
-                >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 ${
+                  i < step ? "bg-green-500 text-white" : i === step ? "bg-brand-red text-white" : "bg-brand-cream-dark text-brand-charcoal-light"
+                }`}>
                   {i < step ? <CheckCircle size={16} /> : i + 1}
                 </div>
-                <span
-                  className={`text-xs font-medium transition-colors duration-300 ${
-                    i === step ? "text-brand-charcoal" : "text-brand-charcoal-light"
-                  }`}
-                >
+                <span className={`text-xs font-medium transition-colors duration-300 ${i === step ? "text-brand-charcoal" : "text-brand-charcoal-light"}`}>
                   {label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div
-                  className={`flex-1 h-0.5 mx-2 mb-4 rounded-full transition-colors duration-500 ${
-                    i < step ? "bg-green-500" : "bg-brand-cream-dark"
-                  }`}
-                />
+                <div className={`flex-1 h-0.5 mx-2 mb-4 rounded-full transition-colors duration-500 ${i < step ? "bg-green-500" : "bg-brand-cream-dark"}`} />
               )}
             </div>
           ))}
         </div>
 
-        {/* Animated step panel */}
+        {/* Animated panel */}
         <div className="relative overflow-hidden">
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
-              key={step}
+              key={`${step}-${paid}`}
               custom={dir}
               variants={slideVariants(dir)}
               initial="enter"
