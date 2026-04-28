@@ -89,7 +89,7 @@ export default function Hero() {
               className="flex flex-wrap gap-4"
             >
               <a
-                href="#shop"
+                href="/shop"
                 className="inline-flex items-center gap-2 bg-brand-gradient text-white font-semibold px-7 py-3.5 rounded-full shadow-brand-glow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-sm"
               >
                 Explore Collection
@@ -195,7 +195,7 @@ export default function Hero() {
                 New Collection
               </p>
               <p className="font-serif text-lg font-bold text-brand-charcoal mt-0.5">
-                Spring 2025
+                Spring {new Date().getFullYear()}
               </p>
               <div className="flex -space-x-1 mt-2">
                 {["#C0392B", "#D35400", "#E8967A", "#F0C8B0"].map((c) => (

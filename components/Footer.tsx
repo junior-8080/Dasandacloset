@@ -69,7 +69,7 @@ export default function Footer() {
               {SERVICES.map((s) => (
                 <li key={s}>
                   <a
-                    href="#shop"
+                    href="/shop"
                     className="text-white/60 text-sm hover:text-brand-red transition-colors"
                   >
                     {s}

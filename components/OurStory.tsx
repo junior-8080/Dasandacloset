@@ -83,7 +83,7 @@ export default function OurStory() {
               </div>
 
               <a
-                href="#shop"
+                href="/shop"
                 className="inline-flex items-center gap-2 bg-brand-gradient text-white font-semibold px-7 py-3.5 rounded-full shadow-brand-glow hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-sm mt-2"
               >
                 Shop the Collection

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ArrowRight, ShoppingBag } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingBag, Store } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { NAV_LINKS } from "@/lib/data";
@@ -62,6 +62,15 @@ export default function Navbar() {
             >
               Shop Now
               <ArrowRight size={14} />
+            </Link>
+
+            {/* Shop icon — mobile only */}
+            <Link
+              href="/shop"
+              className="md:hidden p-2 text-brand-charcoal hover:text-brand-red transition-colors"
+              aria-label="Go to shop"
+            >
+              <Store size={22} />
             </Link>
 
             {/* Cart icon */}

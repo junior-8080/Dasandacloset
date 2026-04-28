@@ -24,7 +24,7 @@ export default function CTABanner() {
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a
-              href="#shop"
+              href="/shop"
               className="inline-flex items-center gap-2 bg-white text-brand-red font-bold px-8 py-4 rounded-full hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               Shop Now <ArrowRight size={16} />
