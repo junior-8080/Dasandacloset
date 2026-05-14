@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAdminOrders } from "@/lib/hooks/use-admin-orders";
@@ -14,7 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUSES = ["all", "pending", "confirmed", "shipped", "delivered", "cancelled"];
 
-export default function OrdersPage() {
+function OrdersContent() {
   const searchParams = useSearchParams();
   const status = searchParams.get("status") ?? undefined;
 
@@ -107,5 +108,13 @@ export default function OrdersPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense>
+      <OrdersContent />
+    </Suspense>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -7,7 +8,7 @@ import { useState } from "react";
 import { useAdminProducts } from "@/lib/hooks/use-admin-products";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const search = searchParams.get("search") ?? undefined;
@@ -152,5 +153,13 @@ export default function ProductsPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense>
+      <ProductsContent />
+    </Suspense>
   );
 }
