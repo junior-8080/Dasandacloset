@@ -1,16 +1,11 @@
-export const dynamic = "force-dynamic";
-import { connectDB } from "@/lib/mongodb";
-import { Collection } from "@/lib/models/Collection";
+"use client";
+
+import { useAdminCollections } from "@/lib/hooks/use-admin-collections";
 import ProductForm from "@/components/admin/ProductForm";
 
-async function getCollections() {
-  await connectDB();
-  return Collection.find({ active: true }).sort({ order: 1 }).lean();
-}
-
-export default async function NewProductPage() {
-  const collections = await getCollections();
-  const options = collections.map((c) => ({ id: c.id, label: c.label }));
+export default function NewProductPage() {
+  const { data: collections = [] } = useAdminCollections();
+  const options = collections.filter((c) => c.active).map((c) => ({ id: c.id, label: c.label }));
 
   return (
     <div>

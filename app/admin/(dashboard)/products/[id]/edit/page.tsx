@@ -1,41 +1,47 @@
-export const dynamic = "force-dynamic";
-import { connectDB } from "@/lib/mongodb";
-import { Product } from "@/lib/models/Product";
-import { Collection } from "@/lib/models/Collection";
+"use client";
+
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useAdminCollections } from "@/lib/hooks/use-admin-collections";
 import ProductForm from "@/components/admin/ProductForm";
-import { notFound } from "next/navigation";
+import { AdminProduct } from "@/lib/hooks/use-admin-products";
 
-async function getData(id: string) {
-  await connectDB();
-  const [product, collections] = await Promise.all([
-    Product.findById(id).lean(),
-    Collection.find({ active: true }).sort({ order: 1 }).lean(),
-  ]);
-  return { product, collections };
-}
+export default function EditProductPage() {
+  const { id } = useParams<{ id: string }>();
 
-export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { product, collections } = await getData(id);
-  if (!product) notFound();
+  const { data: product, isLoading: loadingProduct } = useQuery<AdminProduct>({
+    queryKey: ["admin", "product", id],
+    queryFn: () => fetch(`/api/admin/products/${id}`).then((r) => r.json()),
+  });
 
-  const options = collections.map((c) => ({ id: c.id, label: c.label }));
-  const initialData = {
-    _id: String(product._id),
-    name: product.name,
-    price: product.price,
-    originalPrice: product.originalPrice,
-    collections: product.collections,
-    images: product.images,
-    badge: product.badge,
-    description: product.description,
-    inStock: product.inStock,
-  };
+  const { data: collections = [] } = useAdminCollections();
+  const options = collections.filter((c) => c.active).map((c) => ({ id: c.id, label: c.label }));
+
+  if (loadingProduct) {
+    return <div className="text-[#1A1A1A]/40 text-sm">Loading…</div>;
+  }
+
+  if (!product) {
+    return <div className="text-red-500 text-sm">Product not found.</div>;
+  }
 
   return (
     <div>
       <h1 className="font-serif text-2xl font-bold text-[#1A1A1A] mb-8">Edit Product</h1>
-      <ProductForm initialData={initialData} collectionOptions={options} />
+      <ProductForm
+        initialData={{
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          collections: product.collections,
+          images: product.images,
+          badge: product.badge,
+          description: product.description,
+          inStock: product.inStock,
+        }}
+        collectionOptions={options}
+      />
     </div>
   );
 }

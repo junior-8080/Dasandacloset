@@ -9,6 +9,7 @@ export interface AdminProduct {
   collections: string[];
   images: string[];
   badge?: string;
+  description: string;
   inStock: boolean;
 }
 
@@ -29,6 +30,9 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: (id: string) =>
       fetch(`/api/admin/products/${id}`, { method: "DELETE" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "products"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "products"] });
+      qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+    },
   });
 }

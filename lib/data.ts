@@ -2,108 +2,24 @@ import { Truck, Gem, ShoppingBag, Sparkles } from "lucide-react";
 
 // ─── Shop Data ────────────────────────────────────────────────────────────────
 
-export const COLLECTIONS = [
-  { id: "all", label: "All" },
-  { id: "new-arrivals", label: "New Arrivals" },
-  { id: "eid", label: "Eid Collection" },
-  { id: "best-sellers", label: "Best Sellers" },
-  { id: "abayas", label: "Abayas" },
-  { id: "kaftans", label: "Kaftans" },
-];
-
 export type Product = {
-  id: string;
+  _id: string;
   name: string;
   price: number;
   originalPrice?: number;
   collections: string[];
-  image: string;
+  images: string[];
   badge?: string;
   description: string;
+  inStock: boolean;
+  slug: string;
 };
 
-export const PRODUCTS: Product[] = [
-  {
-    id: "p1",
-    name: "Pearl Embroidered Abaya",
-    price: 480,
-    collections: ["abayas", "best-sellers"],
-    image: "/landingPage/bestSeller.jpeg",
-    badge: "Best Seller",
-    description: "Flowing black abaya with delicate pearl embroidery at the cuffs and neckline.",
-  },
-  {
-    id: "p2",
-    name: "Eid Blossom Kaftan",
-    price: 620,
-    originalPrice: 750,
-    collections: ["kaftans", "eid", "new-arrivals"],
-    image: "/landingPage/newArrivals.jpeg",
-    badge: "Eid Special",
-    description: "Rich fabric kaftan adorned with floral prints — perfect for Eid celebrations.",
-  },
-  {
-    id: "p3",
-    name: "Classic Linen Modest Dress",
-    price: 340,
-    collections: ["best-sellers", "new-arrivals"],
-    image: "/landingPage/madeToFit.jpeg",
-    badge: "New",
-    description: "Breathable linen dress with a flattering A-line silhouette, ideal for everyday modest wear.",
-  },
-  {
-    id: "p4",
-    name: "Golden Hour Kaftan",
-    price: 540,
-    collections: ["kaftans", "eid"],
-    image: "/landingPage/bestSeller.jpeg",
-    badge: "Eid Special",
-    description: "Luxurious gold-trimmed kaftan that brings radiance to any gathering.",
-  },
-  {
-    id: "p5",
-    name: "Midnight Velvet Abaya",
-    price: 720,
-    collections: ["abayas", "new-arrivals"],
-    image: "/landingPage/newArrivals.jpeg",
-    badge: "New",
-    description: "Deep midnight velvet abaya with satin lining — opulence redefined.",
-  },
-  {
-    id: "p6",
-    name: "Sage Wrap Modest Dress",
-    price: 290,
-    collections: ["best-sellers"],
-    image: "/landingPage/madeToFit.jpeg",
-    badge: "Best Seller",
-    description: "Soft sage wrap dress with elegant drape — effortlessly modest and stylish.",
-  },
-  {
-    id: "p7",
-    name: "Rose Silk Kaftan",
-    price: 590,
-    originalPrice: 680,
-    collections: ["kaftans", "new-arrivals"],
-    image: "/landingPage/bestSeller.jpeg",
-    badge: "New",
-    description: "Silky rose kaftan with hand-finished edges, perfect for formal occasions.",
-  },
-  {
-    id: "p8",
-    name: "Eid Ivory Abaya Set",
-    price: 850,
-    collections: ["abayas", "eid"],
-    image: "/landingPage/newArrivals.jpeg",
-    badge: "Eid Special",
-    description: "Coordinated ivory abaya and inner dress — the ultimate Eid statement piece.",
-  },
-];
 
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
   { label: "Our Story", href: "/#story" },
-  { label: "Dashboard", href: "#" },
 ];
 
 export const OFFERINGS = [

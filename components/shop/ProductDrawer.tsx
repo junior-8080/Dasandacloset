@@ -73,7 +73,7 @@ export default function ProductDrawer({ product, onClose }: ProductDrawerProps) 
             {/* Image */}
             <div className="relative w-full aspect-[4/5] bg-brand-cream-dark shrink-0">
               <Image
-                src={product.image}
+                src={product.images[0] ?? "/landingPage/bestSeller.jpeg"}
                 alt={product.name}
                 fill
                 sizes="(max-width: 768px) 100vw, 512px"

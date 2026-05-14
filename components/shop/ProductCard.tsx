@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Shirt } from "lucide-react";
 import type { Product } from "@/lib/data";
 
 const BADGE_STYLES: Record<string, string> = {
@@ -17,6 +18,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, index, onViewDetails }: ProductCardProps) {
+  const image = product.images[0];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 32 }}
@@ -26,15 +29,20 @@ export default function ProductCard({ product, index, onViewDetails }: ProductCa
       className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-card-hover transition-shadow duration-400 flex flex-col cursor-pointer"
       onClick={() => onViewDetails(product)}
     >
-      {/* Image */}
       <div className="relative aspect-[3/4] overflow-hidden bg-brand-cream-dark">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-        />
+        {image ? (
+          <Image
+            src={image}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+          />
+        ) : (
+          <div className="w-full h-full bg-brand-cream-dark flex items-center justify-center">
+            <Shirt size={36} className="text-brand-charcoal-light opacity-30" strokeWidth={1.2} />
+          </div>
+        )}
         {product.badge && (
           <span
             className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -46,7 +54,6 @@ export default function ProductCard({ product, index, onViewDetails }: ProductCa
         )}
       </div>
 
-      {/* Info */}
       <div className="p-4 flex flex-col gap-1 flex-1">
         <h3 className="font-serif text-sm font-semibold text-brand-charcoal leading-snug">
           {product.name}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import ImageUploader from "./ImageUploader";
 
 interface CollectionOption {
@@ -28,6 +29,7 @@ const BADGE_OPTIONS = ["", "Best Seller", "New", "Eid Special", "Sale", "Limited
 
 export default function ProductForm({ initialData, collectionOptions }: ProductFormProps) {
   const router = useRouter();
+  const qc = useQueryClient();
   const isEdit = !!initialData?._id;
 
   const [name, setName] = useState(initialData?.name ?? "");
@@ -81,21 +83,22 @@ export default function ProductForm({ initialData, collectionOptions }: ProductF
       return;
     }
 
+    await qc.invalidateQueries({ queryKey: ["admin", "products"] });
+    await qc.invalidateQueries({ queryKey: ["admin", "stats"] });
     router.push("/admin/products");
-    router.refresh();
   }
 
   const inputCls =
     "w-full border border-[#F0EDE8] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors bg-white";
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-2xl space-y-5 sm:space-y-6">
       <div>
         <label className="block text-xs font-medium text-[#1A1A1A]/70 mb-1.5">Product Name *</label>
         <input value={name} onChange={(e) => setName(e.target.value)} required className={inputCls} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-[#1A1A1A]/70 mb-1.5">Price (GHS) *</label>
           <input

@@ -37,9 +37,9 @@ export default function CollectionsManager() {
 
   return (
     <div className="max-w-2xl">
-      <form onSubmit={handleAdd} className="bg-white rounded-xl border border-[#F0EDE8] p-5 mb-6">
+      <form onSubmit={handleAdd} className="bg-white rounded-xl border border-[#F0EDE8] p-4 sm:p-5 mb-5 sm:mb-6">
         <h2 className="font-semibold text-[#1A1A1A] mb-4">Add Collection</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <label className="block text-xs text-[#1A1A1A]/50 mb-1">ID (slug, e.g. "kaftans")</label>
             <input
@@ -60,11 +60,11 @@ export default function CollectionsManager() {
               className={inputCls + " w-full"}
             />
           </div>
-          <div className="flex items-end">
+          <div className="flex sm:items-end">
             <button
               type="submit"
               disabled={createCollection.isPending}
-              className="bg-[#C9A96E] hover:bg-[#b8924f] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 flex items-center gap-1"
+              className="w-full sm:w-auto bg-[#C9A96E] hover:bg-[#b8924f] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60 flex items-center justify-center gap-1"
             >
               <Plus size={14} /> Add
             </button>
@@ -77,42 +77,79 @@ export default function CollectionsManager() {
         )}
       </form>
 
-      <div className="bg-white rounded-xl border border-[#F0EDE8] overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[#F0EDE8]">
-              {["ID", "Label", "Order", "Active", "Actions"].map((h) => (
-                <th key={h} className="text-left px-5 py-3 text-xs font-medium text-[#1A1A1A]/50 uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
+      {collections.length === 0 ? (
+        <div className="bg-white rounded-xl border border-[#F0EDE8] px-5 py-10 text-center text-[#1A1A1A]/40 text-sm">
+          No collections yet — add one above.
+        </div>
+      ) : (
+        <>
+          {/* Card list — mobile */}
+          <div className="flex flex-col gap-3 sm:hidden">
             {collections.map((col) => (
-              <tr key={col._id} className="border-b border-[#F0EDE8] last:border-0 hover:bg-[#FAF7F2]">
-                <td className="px-5 py-3 font-mono text-xs text-[#1A1A1A]/60">{col.id}</td>
-                <td className="px-5 py-3 font-medium text-[#1A1A1A]">{col.label}</td>
-                <td className="px-5 py-3 text-[#1A1A1A]/50">{col.order}</td>
-                <td className="px-5 py-3">
+              <div key={col._id} className="bg-white rounded-xl border border-[#F0EDE8] p-4 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-[#1A1A1A] text-sm">{col.label}</p>
+                  <p className="font-mono text-xs text-[#1A1A1A]/50 mt-0.5">{col.id}</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
                   <button
                     onClick={() => updateCollection.mutate({ id: col._id, data: { active: !col.active } })}
                     className={`relative w-9 h-5 rounded-full transition-colors ${col.active ? "bg-[#C9A96E]" : "bg-[#F0EDE8]"}`}
                   >
                     <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${col.active ? "translate-x-4" : "translate-x-0"}`} />
                   </button>
-                </td>
-                <td className="px-5 py-3">
                   <button
                     onClick={() => deleteCollection.mutate(col._id)}
-                    className="text-[#1A1A1A]/30 hover:text-red-500 transition-colors"
+                    className="text-[#1A1A1A]/30 hover:text-red-500 transition-colors p-1"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={15} />
                   </button>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          {/* Table — sm+ */}
+          <div className="hidden sm:block bg-white rounded-xl border border-[#F0EDE8] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[400px]">
+                <thead>
+                  <tr className="border-b border-[#F0EDE8]">
+                    {["ID", "Label", "Order", "Active", "Actions"].map((h) => (
+                      <th key={h} className="text-left px-5 py-3 text-xs font-medium text-[#1A1A1A]/50 uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {collections.map((col) => (
+                    <tr key={col._id} className="border-b border-[#F0EDE8] last:border-0 hover:bg-[#FAF7F2]">
+                      <td className="px-5 py-3 font-mono text-xs text-[#1A1A1A]/60">{col.id}</td>
+                      <td className="px-5 py-3 font-medium text-[#1A1A1A]">{col.label}</td>
+                      <td className="px-5 py-3 text-[#1A1A1A]/50">{col.order}</td>
+                      <td className="px-5 py-3">
+                        <button
+                          onClick={() => updateCollection.mutate({ id: col._id, data: { active: !col.active } })}
+                          className={`relative w-9 h-5 rounded-full transition-colors ${col.active ? "bg-[#C9A96E]" : "bg-[#F0EDE8]"}`}
+                        >
+                          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${col.active ? "translate-x-4" : "translate-x-0"}`} />
+                        </button>
+                      </td>
+                      <td className="px-5 py-3">
+                        <button
+                          onClick={() => deleteCollection.mutate(col._id)}
+                          className="text-[#1A1A1A]/30 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

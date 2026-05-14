@@ -1,17 +1,33 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { COLLECTIONS } from "@/lib/data";
+import type { ShopCollection } from "@/lib/hooks/use-shop";
 
 interface CollectionTabsProps {
+  collections: ShopCollection[];
   active: string;
   onChange: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export default function CollectionTabs({ active, onChange }: CollectionTabsProps) {
+export default function CollectionTabs({ collections, active, onChange, isLoading }: CollectionTabsProps) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {[72, 56, 88, 64, 76].map((w, i) => (
+          <div
+            key={i}
+            className="shrink-0 h-9 rounded-full bg-brand-cream-dark animate-pulse"
+            style={{ width: w }}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      {COLLECTIONS.map((col) => (
+      {collections.map((col) => (
         <button
           key={col.id}
           onClick={() => onChange(col.id)}

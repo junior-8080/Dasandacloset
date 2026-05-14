@@ -30,6 +30,7 @@ const BANK = {
 
 type FormData = {
   name: string;
+  email: string;
   phone: string;
   location: string;
   notes: string;
@@ -49,10 +50,11 @@ export default function CheckoutPage() {
   const { items, subtotal, remove, setQty, clear } = useCart();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
-  const [form, setForm] = useState<FormData>({ name: "", phone: "", location: "", notes: "" });
+  const [form, setForm] = useState<FormData>({ name: "", email: "", phone: "", location: "", notes: "" });
   const [loading, setLoading] = useState(false);
   const [savedTotal, setSavedTotal] = useState(0);
   const [paid, setPaid] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
 
   const total = subtotal + (items.length > 0 ? DELIVERY : 0);
 
@@ -65,15 +67,46 @@ export default function CheckoutPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handlePlaceOrder(e: FormEvent) {
+  async function handlePlaceOrder(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSavedTotal(total); // lock in total before cart clears
+    try {
+      const orderItems = items.map((item) => ({
+        productId: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
+        qty: item.quantity,
+        image: item.product.images[0] ?? "",
+      }));
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            address: form.location,
+          },
+          items: orderItems,
+          total,
+          notes: form.notes,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to place order");
+
+      setOrderNumber(data.orderNumber);
+      setSavedTotal(total);
       clear();
       goTo(2);
-    }, 1200);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   // ── Step 0: Cart ─────────────────────────────────────────────────────────
@@ -93,9 +126,9 @@ export default function CheckoutPage() {
         <>
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={`${item.product.id}-${item.size}`} className="flex gap-4 bg-white rounded-2xl p-4 shadow-sm">
+              <div key={`${item.product._id}-${item.size}`} className="flex gap-4 bg-white rounded-2xl p-4 shadow-sm">
                 <div className="relative w-20 h-24 rounded-xl overflow-hidden shrink-0 bg-brand-cream-dark">
-                  <Image src={item.product.image} alt={item.product.name} fill sizes="80px" className="object-cover" />
+                  <Image src={item.product.images[0] ?? "/landingPage/bestSeller.jpeg"} alt={item.product.name} fill sizes="80px" className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
@@ -104,17 +137,17 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => setQty(item.product.id, item.size, item.quantity - 1)} className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors">
+                      <button onClick={() => setQty(item.product._id, item.size, item.quantity - 1)} className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors">
                         <Minus size={11} />
                       </button>
                       <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                      <button onClick={() => setQty(item.product.id, item.size, item.quantity + 1)} className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors">
+                      <button onClick={() => setQty(item.product._id, item.size, item.quantity + 1)} className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-brand-cream transition-colors">
                         <Plus size={11} />
                       </button>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-brand-red">GHS {(item.product.price * item.quantity).toLocaleString()}</span>
-                      <button onClick={() => remove(item.product.id, item.size)} className="text-brand-charcoal-light hover:text-brand-red transition-colors">
+                      <button onClick={() => remove(item.product._id, item.size)} className="text-brand-charcoal-light hover:text-brand-red transition-colors">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -147,9 +180,9 @@ export default function CheckoutPage() {
 
       <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2">
         {items.map((item) => (
-          <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3">
+          <div key={`${item.product._id}-${item.size}`} className="flex items-center gap-3">
             <div className="relative w-10 h-12 rounded-lg overflow-hidden shrink-0 bg-brand-cream-dark">
-              <Image src={item.product.image} alt={item.product.name} fill sizes="40px" className="object-cover" />
+              <Image src={item.product.images[0] ?? "/landingPage/bestSeller.jpeg"} alt={item.product.name} fill sizes="40px" className="object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-brand-charcoal line-clamp-1">{item.product.name}</p>
@@ -175,6 +208,11 @@ export default function CheckoutPage() {
             <input required name="phone" value={form.phone} onChange={handleChange} placeholder="0XX XXX XXXX"
               className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors" />
           </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-brand-charcoal uppercase tracking-widest">Email Address <span className="normal-case font-normal text-brand-charcoal-light">(optional)</span></label>
+          <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="amina@example.com"
+            className="border border-brand-cream-dark rounded-xl px-4 py-3 text-sm text-brand-charcoal placeholder:text-brand-charcoal-light/50 focus:outline-none focus:border-brand-red transition-colors" />
         </div>
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-brand-charcoal uppercase tracking-widest">Delivery Location *</label>
@@ -212,9 +250,14 @@ export default function CheckoutPage() {
         <Clock size={40} className="text-amber-500" strokeWidth={1.4} />
       </div>
       <div>
-        <h2 className="font-serif text-2xl font-bold text-brand-charcoal mb-3">
+        <h2 className="font-serif text-2xl font-bold text-brand-charcoal mb-2">
           Payment Submitted
         </h2>
+        {orderNumber && (
+          <p className="text-xs font-mono text-brand-charcoal-light mb-3">
+            Order <span className="font-semibold text-brand-charcoal">{orderNumber}</span>
+          </p>
+        )}
         <p className="text-brand-charcoal-light max-w-sm leading-relaxed">
           Thank you, <strong>{form.name}</strong>! Once we confirm your payment,
           we will contact you on <strong>{form.phone}</strong> to arrange delivery.

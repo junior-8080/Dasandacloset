@@ -31,7 +31,7 @@ const OrderSchema = new Schema<IOrder>(
     orderNumber: { type: String, required: true, unique: true },
     customer: {
       name: { type: String, required: true },
-      email: { type: String, required: true },
+      email: { type: String, default: "" },
       phone: { type: String, required: true },
       address: { type: String, required: true },
     },

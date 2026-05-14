@@ -27,11 +27,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD": {
       const existing = state.find(
-        (i) => i.product.id === action.product.id && i.size === action.size
+        (i) => i.product._id === action.product._id && i.size === action.size
       );
       if (existing) {
         return state.map((i) =>
-          i.product.id === action.product.id && i.size === action.size
+          i.product._id === action.product._id && i.size === action.size
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
@@ -40,15 +40,15 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
     case "REMOVE":
       return state.filter(
-        (i) => !(i.product.id === action.id && i.size === action.size)
+        (i) => !(i.product._id === action.id && i.size === action.size)
       );
     case "SET_QTY":
       if (action.quantity <= 0)
         return state.filter(
-          (i) => !(i.product.id === action.id && i.size === action.size)
+          (i) => !(i.product._id === action.id && i.size === action.size)
         );
       return state.map((i) =>
-        i.product.id === action.id && i.size === action.size
+        i.product._id === action.id && i.size === action.size
           ? { ...i, quantity: action.quantity }
           : i
       );

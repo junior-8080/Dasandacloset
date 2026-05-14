@@ -31,6 +31,9 @@ export function useUpdateOrder() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "orders"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "orders"] });
+      qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+    },
   });
 }

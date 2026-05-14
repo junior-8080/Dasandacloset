@@ -72,13 +72,13 @@ export default function CartDrawer() {
               ) : (
                 items.map((item) => (
                   <div
-                    key={`${item.product.id}-${item.size}`}
+                    key={`${item.product._id}-${item.size}`}
                     className="flex gap-4 bg-brand-cream rounded-xl p-3"
                   >
                     {/* Thumbnail */}
                     <div className="relative w-20 h-24 rounded-lg overflow-hidden shrink-0 bg-brand-cream-dark">
                       <Image
-                        src={item.product.image}
+                        src={item.product.images[0] ?? "/landingPage/bestSeller.jpeg"}
                         alt={item.product.name}
                         fill
                         sizes="80px"
@@ -102,7 +102,7 @@ export default function CartDrawer() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() =>
-                              setQty(item.product.id, item.size, item.quantity - 1)
+                              setQty(item.product._id, item.size, item.quantity - 1)
                             }
                             className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-white transition-colors"
                           >
@@ -113,7 +113,7 @@ export default function CartDrawer() {
                           </span>
                           <button
                             onClick={() =>
-                              setQty(item.product.id, item.size, item.quantity + 1)
+                              setQty(item.product._id, item.size, item.quantity + 1)
                             }
                             className="w-6 h-6 rounded-full border border-brand-cream-dark flex items-center justify-center hover:bg-white transition-colors"
                           >
@@ -126,7 +126,7 @@ export default function CartDrawer() {
                             GHS {(item.product.price * item.quantity).toLocaleString()}
                           </span>
                           <button
-                            onClick={() => remove(item.product.id, item.size)}
+                            onClick={() => remove(item.product._id, item.size)}
                             className="text-brand-charcoal-light hover:text-brand-red transition-colors"
                           >
                             <Trash2 size={14} />
